@@ -35,7 +35,20 @@ Blocks surrounded by {} are also passed unchanged to maildrop. For example this 
     MAILDIR="$HOME/mail"
     }
     
-    
+If multiple filters must be all satisfied in an "and" relation, they can be prefixes by &&. For example, if the mail should be relayed if it is about foo bar, or only about foo from certain senders:
+
+    Subject: foo bar
+    Subject: foo
+    && From: /foo@|bar@/
+    => foobar
+
+When the same header is checked in multiple, consecutive filters, only the first filter has to specify the header name:
+  
+    From: foo@example.org
+    : foo@example.com
+    : bar@example.org
+    => exfolder
+      
 See tests/tests.pl for further examples.
 
 Caveats
