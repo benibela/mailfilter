@@ -84,9 +84,11 @@ sub endblock(){
       print $out "}\n";
     } else {
       $hadDefaultBlock = 1;
-      print $out "  to \"$target\"\n";
+      print $out "to \"$target\"\n";
     }    
     $inblock = 0;
+    
+    $blockTarget = "";
   }
 }
 
@@ -139,6 +141,14 @@ sub makevariable{
   return $var;
 }
 
+sub startblock(){
+  $inblock = 1;
+  @conditions = ();
+  @conditionsForMark = ();
+  $markRead = 0;
+  $blockTarget = "";
+}
+
 sub process{
   my $in=shift;
   $out=shift;
@@ -164,7 +174,10 @@ sub process{
       }
       case "" { endblock(); } 
       case /^=>(.+)/ { 
-        $inblock or !$hadDefaultBlock or err "=> outside block";
+        if (!$inblock) {
+           !$hadDefaultBlock or err "=> outside block";
+           startblock;
+        }
         !$blockTarget or err "multiple =>";
         $line =~ /=>\s*(.*)/;
         $blockTarget = $1;
@@ -174,13 +187,9 @@ sub process{
       case /^(&&)?\s*(\/|([A-Za-z0-9-]*)\s*:)/ {
         #Open block
         if (!$inblock) {
-          $inblock = 1;
-          $lastheader = "";
-          @conditions = ();
-          @conditionsForMark = ();
-          $markRead = 0;
+          startblock();
           $lastConditions = \@conditions;
-          $blockTarget = "";
+          $lastheader = "";
         }
         my @newFilter = ();
         my $andFilter = 0;

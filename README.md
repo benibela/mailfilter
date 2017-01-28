@@ -35,7 +35,7 @@ Blocks surrounded by {} are also passed unchanged to maildrop. For example this 
     MAILDIR="$HOME/mail"
     }
     
-If multiple filters must be all satisfied in an "and" relation, they can be prefixes by &&. For example, if the mail should be relayed if it is about foo bar, or only about foo from certain senders:
+If multiple filters must be all satisfied in an "and" relation, they can be prefixed by &&. For example, if the mail should be relayed if it is about foo bar, or only about foo from certain senders:
 
     Subject: foo bar
     Subject: foo
@@ -49,7 +49,7 @@ When the same header is checked in multiple, consecutive filters, only the first
     : bar@example.org
     => exfolder
 
-The mails can be automatically marked as read by using the mark read command:
+The mails can be automatically marked as read with the mark read command:
 
     From: foobar
     => foolder
@@ -62,7 +62,19 @@ This marking can also be done conditionally, e.g. to hide spam:
     Subject: spam
     mark read
 
+Multiple filters are separated by whitespace.
 
+    Subject: topic1
+    => folder1
+    
+    Subject: topic2
+    => folder2
+
+    From: someguy
+    => thatguy
+    mark read
+    
+    => catchall
 
 See tests/tests.pl for further examples.
 

@@ -59,6 +59,19 @@ test('/Subject: foo/
 }
 '.$common);
 
+test("/X: y/
+=> go
+
+
+
+=> catchall", '
+if (/X: y/)
+{
+  to "$MAILDIR/go"
+}
+to "$MAILDIR/catchall"
+');
+
 test('From:  /a|b|c/
 Subject: alphabet...
 =>    target
