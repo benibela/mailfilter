@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib '../lib';
-use lib 'lib';
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use Transpiler;
 
 our $pass = 0;
@@ -39,6 +39,20 @@ test('
 {
   foo bar
 }', "  foo bar\n".$common);
+
+test('
+{
+{
+ {
+  foo bar
+ }
+}
+}', "{
+ {
+  foo bar
+ }
+}
+".$common);
 
 test("=> catchall", 'to "$MAILDIR/catchall"');
 

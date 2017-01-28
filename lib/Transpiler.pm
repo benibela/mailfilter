@@ -170,7 +170,7 @@ sub process{
           print $out $line;
         }
         if ($countopenparens > 0) { err 'Unclosed {'; }
-        next;
+        last;
       }
       case "" { endblock(); } 
       case /^=>(.+)/ { 
@@ -223,6 +223,7 @@ sub process{
         $blockTarget or err "mark without preceding =>";
         $markRead = 1;
       }
+      else { err "unexpected line: $line"; }
     } 
   }
   endblock();
