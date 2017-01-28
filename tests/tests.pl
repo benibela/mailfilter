@@ -238,4 +238,65 @@ if (($headerSubject =~ /foo/ && $headerFrom =~ /foo@|bar@/) || $headerSubject =~
 to "$MAILDIR/"
 ');
 
+test('T: a
+=> b
+mark read',<<'END'
+/^T:\s*(.*)/
+headerT="$MATCH1"
+if ($headerT =~ /a/)
+{
+  cc "$MAILDIR/b"
+  `ls -t $MAILDIR/b/new | head -1 | xargs -I {} mv '$MAILDIR/b/new/{}' '$MAILDIR/b/cur/{}:2,S'`
+  exit
+}
+to "$MAILDIR/"
+END
+);
+
+test('T: a
+=> b.c.d
+U: x
+V: y
+mark read', <<'END'
+/^T:\s*(.*)/
+headerT="$MATCH1"
+/^U:\s*(.*)/
+headerU="$MATCH1"
+/^V:\s*(.*)/
+headerV="$MATCH1"
+if ($headerT =~ /a/)
+{
+  cc "$MAILDIR/b.c.d"
+  if ($headerU =~ /x/ || $headerV =~ /y/)
+  {
+    `ls -t $MAILDIR/b.c.d/new | head -1 | xargs -I {} mv '$MAILDIR/b.c.d/new/{}' '$MAILDIR/b.c.d/cur/{}:2,S'`
+  }
+  exit
+}
+to "$MAILDIR/"
+END
+);
+
+test('T: a
+=> b
+U: x
+U: y
+mark read', <<'END'
+/^T:\s*(.*)/
+headerT="$MATCH1"
+/^U:\s*(.*)/
+headerU="$MATCH1"
+if ($headerT =~ /a/)
+{
+  cc "$MAILDIR/b"
+  if ($headerU =~ /x|y/)
+  {
+    `ls -t $MAILDIR/b/new | head -1 | xargs -I {} mv '$MAILDIR/b/new/{}' '$MAILDIR/b/cur/{}:2,S'`
+  }
+  exit
+}
+to "$MAILDIR/"
+END
+);
+
 print "score: $pass/".($pass+$fail)."\n";

@@ -13,8 +13,47 @@ our %variables = (); #Declared variables, each caching a header value (e.g. From
 
 our $inblock = 0; 
 our @conditions = (); #conditions for the current filter block. pairs (name, value) for most tested headers, (name1, value1, name2, value2, ...) for && conditions
+our @conditionsForMark = (); 
 our $blockTarget = "";
 our $hadDefaultBlock = 0;
+our $markRead = 0;
+
+sub printconditions{
+  my $conditions = shift; 
+  my @conditions = @$conditions;
+  my %pairMerging = ();
+  my @newConditions = ();
+  foreach my $c (@conditions) {
+    my @cur = @$c;
+    if (@cur == 2 && $cur[0] ne "") {
+      if (exists $pairMerging{$cur[0]}) { $pairMerging{$cur[0]} = $pairMerging{$cur[0]} . "|" . $cur[1]; }
+      else { $pairMerging{$cur[0]} = $cur[1]; }
+    } else { push @newConditions, $c; }
+  }
+  foreach my $var (sort keys %pairMerging) {
+    push @newConditions, ["", "\$$var =~ /$pairMerging{$var}/" ];
+  }
+  my $first = 1;
+  foreach my $c (@newConditions) {
+    $first or print $out " || ";
+    $first = 0;
+    my @cur = @$c;
+    if ($cur[0] eq "") {
+      print $out $cur[1];
+    } elsif (@cur == 2) {
+      err "internal error 230: ".join(@cur, ", ");
+    } else {
+      print $out "(";
+      foreach my $i (0 .. @cur / 2 - 1) {
+        $i == 0 || print $out " && ";
+        my $j = 2*$i;
+        if ($cur[$j] eq "") { print $out $cur[$j + 1]; }
+        else { print $out "\$$cur[$j] =~ /$cur[$j+1]/"; }
+      }
+      print $out ")"; 
+    }        
+  }
+}
 
 sub endblock(){
   if ($inblock) {
@@ -23,40 +62,24 @@ sub endblock(){
     
     print $out "if (";
     if (@conditions) {
-      my %pairMerging = ();
-      my @newConditions = ();
-      foreach my $c (@conditions) {
-        my @cur = @$c;
-        if (@cur == 2 && $cur[0] ne "") {
-          if (exists $pairMerging{$cur[0]}) { $pairMerging{$cur[0]} = $pairMerging{$cur[0]} . "|" . $cur[1]; }
-          else { $pairMerging{$cur[0]} = $cur[1]; }
-        } else { push @newConditions, $c; }
-      }
-      foreach my $var (sort keys %pairMerging) {
-        push @newConditions, ["", "\$$var =~ /$pairMerging{$var}/" ];
-      }
-      my $first = 1;
-      foreach my $c (@newConditions) {
-        $first or print $out " || ";
-        $first = 0;
-        my @cur = @$c;
-        if ($cur[0] eq "") {
-          print $out $cur[1];
-        } elsif (@cur == 2) {
-          err "internal error 230: ".join(@cur, ", ");
-        } else {
-          print $out "(";
-          foreach my $i (0 .. @cur / 2 - 1) {
-            $i == 0 || print $out " && ";
-            my $j = 2*$i;
-            if ($cur[$j] eq "") { print $out $cur[$j + 1]; }
-            else { print $out "\$$cur[$j] =~ /$cur[$j+1]/"; }
-          }
-          print $out ")"; 
-        }        
-      }
+      printconditions (\@conditions);
       print $out ")\n{\n";
-      print $out "  to \"$blockTargetPrefix$blockTarget\"\n";
+      my $target = $blockTargetPrefix.$blockTarget;
+      print $out "  ".($markRead?"cc":"to")." \"$target\"\n";
+      if ($markRead) {
+        my $indent = "  ";
+        if (@conditionsForMark) {
+          print $out "  if (";
+          printconditions (\@conditionsForMark);
+          print $out ")\n  {\n";
+          $indent = "    ";
+        }
+        print $out $indent."`ls -t $target/new | head -1 | xargs -I {} mv '$target/new/{}' '$target/cur/{}:2,S'`\n";
+        print $out "  }\n" if (@conditionsForMark);
+        print $out "  exit\n";
+      } else {
+        !@conditionsForMark or err "conditions after =>";
+      }
       print $out "}\n";
     } else {
       $hadDefaultBlock = 1;
@@ -123,6 +146,7 @@ sub process{
   $hadDefaultBlock = 0;
 
   my $lastheader;
+  my $lastConditions;
   
   while(my $line = <$in>) {
     $line =~ s/^\s+|\s+$//g;
@@ -143,6 +167,7 @@ sub process{
         !$blockTarget or err "multiple =>";
         $line =~ /=>\s*(.*)/;
         $blockTarget = $1;
+        $lastConditions = \@conditionsForMark;
       }
       case /^(&&)?\s*(\/|([A-Za-z0-9-]*)\s*:)/ {
         #Open block
@@ -150,6 +175,9 @@ sub process{
           $inblock = 1;
           $lastheader = "";
           @conditions = ();
+          @conditionsForMark = ();
+          $markRead = 0;
+          $lastConditions = \@conditions;
           $blockTarget = "";
         }
         my @newFilter = ();
@@ -170,13 +198,14 @@ sub process{
           @newFilter = ($var, $value);
         }
         if ($andFilter) {
-          my $ref = $conditions[@conditions - 1];
-          my @temp = @$ref;
-          push @temp, @newFilter;
-          $conditions[@conditions - 1] = \@temp;
+          push @{$$lastConditions[@$lastConditions - 1]}, @newFilter;
         } else {
-          push @conditions, \@newFilter
+          push @$lastConditions, \@newFilter
         }
+      }
+      case /^mark\s+read$/ {
+        $blockTarget or err "mark without preceding =>";
+        $markRead = 1;
       }
     } 
   }
