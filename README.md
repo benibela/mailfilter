@@ -75,4 +75,4 @@ The folder used by => is always prefixed with $MAILDIR, which is currently not c
 
 From/To/Cc/Resent-To/Resent-Cc ignore the name part and only compare the addr.
 
-The two commands `=>` and `mark read` should probably become user configurable.
+The two commands `=>` and `mark read` should probably become user configurable. mark read might have a race condition.

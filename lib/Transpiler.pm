@@ -59,12 +59,13 @@ sub endblock(){
   if ($inblock) {
     $blockTarget or err "No => target";
     !$hadDefaultBlock or err "Block after unconditional => block";
+
+    my $target = $blockTargetPrefix.$blockTarget;
     
-    print $out "if (";
     if (@conditions) {
+      print $out "if (";
       printconditions (\@conditions);
       print $out ")\n{\n";
-      my $target = $blockTargetPrefix.$blockTarget;
       print $out "  ".($markRead?"cc":"to")." \"$target\"\n";
       if ($markRead) {
         my $indent = "  ";
@@ -83,7 +84,7 @@ sub endblock(){
       print $out "}\n";
     } else {
       $hadDefaultBlock = 1;
-      print $out "  to \"$blockTargetPrefix$blockTarget\"\n";
+      print $out "  to \"$target\"\n";
     }    
     $inblock = 0;
   }
@@ -163,10 +164,11 @@ sub process{
       }
       case "" { endblock(); } 
       case /^=>(.+)/ { 
-        $inblock or err "=> outside block";
+        $inblock or !$hadDefaultBlock or err "=> outside block";
         !$blockTarget or err "multiple =>";
         $line =~ /=>\s*(.*)/;
         $blockTarget = $1;
+        $inblock = 1;
         $lastConditions = \@conditionsForMark;
       }
       case /^(&&)?\s*(\/|([A-Za-z0-9-]*)\s*:)/ {
@@ -194,7 +196,12 @@ sub process{
           $1 and $lastheader = $1;
           my $var = makevariable($lastheader);
           if ($value =~ /\s*\/(.*)\/\s*/) { $value = $1; }
-          else { $value = quotemeta($value); } 
+          else { 
+            my $prefix = ""; my $suffix = "";
+            $value =~ s/^\^/$prefix='^\s*',""/e;
+            $value =~ s/\$$/$suffix='\s*$',""/e;
+            $value = $prefix.quotemeta($value).$suffix; 
+          } 
           @newFilter = ($var, $value);
         }
         if ($andFilter) {

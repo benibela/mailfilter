@@ -40,6 +40,7 @@ test('
   foo bar
 }', "  foo bar\n".$common);
 
+test("=> catchall", 'to "$MAILDIR/catchall"');
 
 test('/Subject: foo/
 => xyz', 'if (/Subject: foo/)
@@ -298,5 +299,25 @@ if ($headerT =~ /a/)
 to "$MAILDIR/"
 END
 );
+
+test('A: ^foo
+B: bar$
+C: ^^x$
+D: ^^y$$
+=> test', '
+/^A:\s*(.*)/
+headerA="$MATCH1"
+/^B:\s*(.*)/
+headerB="$MATCH1"
+/^C:\s*(.*)/
+headerC="$MATCH1"
+/^D:\s*(.*)/
+headerD="$MATCH1"
+if ($headerA =~ /^\s*foo/ || $headerB =~ /bar\s*$/ || $headerC =~ /^\s*\^x\s*$/ || $headerD =~ /^\s*\^y\$\s*$/)
+{
+  to "$MAILDIR/test"
+}
+to "$MAILDIR/"
+');
 
 print "score: $pass/".($pass+$fail)."\n";
