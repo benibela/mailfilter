@@ -31,7 +31,7 @@ sub test{
   }
 }
 
-my $common='to "$MAILDIR/"';
+my $common='to "$MAILDIR/."';
 
 test("", $common);
 
@@ -54,12 +54,12 @@ test('
 }
 ".$common);
 
-test("=> catchall", 'to "$MAILDIR/catchall"');
+test("=> catchall", 'to "$MAILDIR/.catchall"');
 
 test('/Subject: foo/
 => xyz', 'if (/Subject: foo/)
 {
-  to "$MAILDIR/xyz"
+  to "$MAILDIR/.xyz"
 }
 '.$common);
 
@@ -69,7 +69,7 @@ test('/Subject: foo/
 =>123
 ', 'if (/Subject: foo/ || /From: bar/ || /Abcdef:\s*ghih/)
 {
-  to "$MAILDIR/123"
+  to "$MAILDIR/.123"
 }
 '.$common);
 
@@ -81,9 +81,9 @@ test("/X: y/
 => catchall", '
 if (/X: y/)
 {
-  to "$MAILDIR/go"
+  to "$MAILDIR/.go"
 }
-to "$MAILDIR/catchall"
+to "$MAILDIR/.catchall"
 ');
 
 test('From:  /a|b|c/
@@ -99,7 +99,7 @@ if ($headerSubject =~ /^=\?utf-8\?.*/)
 }
 if ($headerFrom =~ /a|b|c/ || $headerSubject =~ /alphabet\.\.\./)
 {
-  to "$MAILDIR/target"
+  to "$MAILDIR/.target"
 }
 '.$common);
 
@@ -116,15 +116,15 @@ From: xyz
 headerFrom=getaddr("$MATCH1")
 if ($headerFrom =~ /a|b|c/)
 {
-  to "$MAILDIR/abc"
+  to "$MAILDIR/.abc"
 }
 if ($headerFrom =~ /foo/)
 {
-  to "$MAILDIR/bar"
+  to "$MAILDIR/.bar"
 }
 if ($headerFrom =~ /xyz/)
 {
-  to "$MAILDIR/def"
+  to "$MAILDIR/.def"
 }
 '.$common);
 
@@ -140,14 +140,14 @@ headerTo=getaddr("$MATCH1")
 /^Cc:\s*(.*)/
 headerCc=getaddr("$MATCH1")
 /^Resent-To:\s*(.*)/
-headerResentx45To=getaddr("$MATCH1")
+headerResentx45to=getaddr("$MATCH1")
 /^Resent-Cc:\s*(.*)/
-headerResentx45Cc=getaddr("$MATCH1")
+headerResentx45cc=getaddr("$MATCH1")
 /^Other:\s*(.*)/
 headerOther="$MATCH1"
-if ($headerCc =~ /a2/ || $headerOther =~ /normal/ || $headerResentx45Cc =~ /a4/ || $headerResentx45To =~ /a3/ || $headerTo =~ /a1/)
+if ($headerCc =~ /a2/ || $headerOther =~ /normal/ || $headerResentx45cc =~ /a4/ || $headerResentx45to =~ /a3/ || $headerTo =~ /a1/)
 {
-  to "$MAILDIR/a"
+  to "$MAILDIR/.a"
 }
 '.$common);
 
@@ -155,16 +155,16 @@ if ($headerCc =~ /a2/ || $headerOther =~ /normal/ || $headerResentx45Cc =~ /a4/ 
 test(
 'Test: abc
 Test: def
-Test: /foo|bar/
+test: /foo|bar/
 => go
 ', 
 '/^Test:\s*(.*)/
 headerTest="$MATCH1"
 if ($headerTest =~ /abc|def|foo|bar/)
 {
-  to "$MAILDIR/go"
+  to "$MAILDIR/.go"
 }
-to "$MAILDIR/"');
+to "$MAILDIR/."');
 
 
 test('A: 123
@@ -176,9 +176,9 @@ headerA="$MATCH1"
 headerB="$MATCH1"
 if (($headerA =~ /123/ && $headerB =~ /456/))
 {
-  to "$MAILDIR/and"
+  to "$MAILDIR/.and"
 }
-to "$MAILDIR/"
+to "$MAILDIR/."
 ');
 
 test('O: 0
@@ -204,9 +204,9 @@ headerY="$MATCH1"
 headerZ="$MATCH1"
 if (($headerA =~ /123/ && $headerB =~ /4/ && $headerB =~ /5/ && $headerB =~ /6/) || $headerO =~ /0/ || $headerX =~ /\.\.\./ || $headerY =~ /\,\,\,/ || $headerZ =~ /\!\!\!/)
 {
-  to "$MAILDIR/test"
+  to "$MAILDIR/.test"
 }
-to "$MAILDIR/"
+to "$MAILDIR/."
 ');
 
 test('A: 1
@@ -218,9 +218,9 @@ A: 2
 headerA="$MATCH1"
 if ($headerA =~ /1|2|3|4/)
 {
-  to "$MAILDIR/a"
+  to "$MAILDIR/.a"
 }
-to "$MAILDIR/"');
+to "$MAILDIR/."');
 
 test('O: 0
 : +
@@ -229,9 +229,9 @@ test('O: 0
 headerO="$MATCH1"
 if ($headerO =~ /0|\+/)
 {
-  to "$MAILDIR/a"
+  to "$MAILDIR/.a"
 }
-to "$MAILDIR/"');
+to "$MAILDIR/."');
 
 test('From: foo@example.org
 : foo@example.com
@@ -241,9 +241,9 @@ test('From: foo@example.org
 headerFrom=getaddr("$MATCH1")
 if ($headerFrom =~ /foo\@example\.org|foo\@example\.com|bar\@example\.org/)
 {
-  to "$MAILDIR/exfolder"
+  to "$MAILDIR/.exfolder"
 }
-to "$MAILDIR/"
+to "$MAILDIR/."
 ');
 
 
@@ -261,9 +261,9 @@ if ($headerSubject =~ /^=\?utf-8\?.*/)
 headerFrom=getaddr("$MATCH1")
 if (($headerSubject =~ /foo/ && $headerFrom =~ /foo@|bar@/) || $headerSubject =~ /foo\ and\ bar/)
 {
-  to "$MAILDIR/foobar"
+  to "$MAILDIR/.foobar"
 }
-to "$MAILDIR/"
+to "$MAILDIR/."
 ');
 
 test('T: a
@@ -273,11 +273,11 @@ mark read',<<'END'
 headerT="$MATCH1"
 if ($headerT =~ /a/)
 {
-  cc "$MAILDIR/b"
-  `ls -t $MAILDIR/b/new | head -1 | xargs -I {} mv '$MAILDIR/b/new/{}' '$MAILDIR/b/cur/{}:2,S'`
+  cc "$MAILDIR/.b"
+  `ls -t $MAILDIR/.b/new | head -1 | xargs -I {} mv '$MAILDIR/.b/new/{}' '$MAILDIR/.b/cur/{}:2,S'`
   exit
 }
-to "$MAILDIR/"
+to "$MAILDIR/."
 END
 );
 
@@ -294,14 +294,14 @@ headerU="$MATCH1"
 headerV="$MATCH1"
 if ($headerT =~ /a/)
 {
-  cc "$MAILDIR/b.c.d"
+  cc "$MAILDIR/.b.c.d"
   if ($headerU =~ /x/ || $headerV =~ /y/)
   {
-    `ls -t $MAILDIR/b.c.d/new | head -1 | xargs -I {} mv '$MAILDIR/b.c.d/new/{}' '$MAILDIR/b.c.d/cur/{}:2,S'`
+    `ls -t $MAILDIR/.b.c.d/new | head -1 | xargs -I {} mv '$MAILDIR/.b.c.d/new/{}' '$MAILDIR/.b.c.d/cur/{}:2,S'`
   }
   exit
 }
-to "$MAILDIR/"
+to "$MAILDIR/."
 END
 );
 
@@ -316,14 +316,14 @@ headerT="$MATCH1"
 headerU="$MATCH1"
 if ($headerT =~ /a/)
 {
-  cc "$MAILDIR/b"
+  cc "$MAILDIR/.b"
   if ($headerU =~ /x|y/)
   {
-    `ls -t $MAILDIR/b/new | head -1 | xargs -I {} mv '$MAILDIR/b/new/{}' '$MAILDIR/b/cur/{}:2,S'`
+    `ls -t $MAILDIR/.b/new | head -1 | xargs -I {} mv '$MAILDIR/.b/new/{}' '$MAILDIR/.b/cur/{}:2,S'`
   }
   exit
 }
-to "$MAILDIR/"
+to "$MAILDIR/."
 END
 );
 
@@ -342,9 +342,9 @@ headerC="$MATCH1"
 headerD="$MATCH1"
 if ($headerA =~ /^\s*foo/ || $headerB =~ /bar\s*$/ || $headerC =~ /^\s*\^x\s*$/ || $headerD =~ /^\s*\^y\$\s*$/)
 {
-  to "$MAILDIR/test"
+  to "$MAILDIR/.test"
 }
-to "$MAILDIR/"
+to "$MAILDIR/."
 ');
 
 print "score: $pass/".($pass+$fail)."\n";

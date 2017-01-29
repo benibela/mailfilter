@@ -97,8 +97,12 @@ sub makevariable{
   my $var;
   my $mode = 0; #if the case should be changed
   #decide on variable name and header
-  $var = "header$header"; 
+  $var = $header; 
+  #Convert header to title case and remove chars not valid in variable names
   $var =~ s/([^A-Za-z_0-9])/"x".ord($1)/ge;
+  $var =~ s/([A-Z])/lc $1/ge; 
+  $var =~ s/^([a-z])/uc $1/e;
+  $var = "header$var"; 
   #this can be used to match "Header:" case-sensitive and "header:" case-insensitive.
   #however, since maildrop defaults to case-insensitive and the performance does not matter much, it is probably pointless
   #switch ($header){
