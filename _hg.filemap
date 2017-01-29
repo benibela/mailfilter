@@ -1,2 +1,3 @@
 include programs/data/mailfilter
+exclude programs/data/mailfilter/myfilters
 rename programs/data/mailfilter .

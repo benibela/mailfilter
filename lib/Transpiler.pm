@@ -6,7 +6,7 @@ sub err {
   die "Error: ".shift;
 }
 
-our $blockTargetPrefix = '$MAILDIR/';
+our $blockTargetPrefix = '$MAILDIR/.';
 
 our $out;
 our %variables = (); #Declared variables, each caching a header value (e.g. From: in variable headerFrom)
@@ -197,8 +197,16 @@ sub process{
           $andFilter = 1;
           $line =~ s/^&&//;
         }
-        if ($line =~ /^\//) { @newFilter = ("", $line); }
-        else {
+        if ($line =~ /^\//) { 
+          @newFilter = ("", $line); 
+          if ($line =~ /^\/(.*)\/[hbD]*$/) {
+            my $pattern = $1;
+            eval { qr/$1/ };
+            err "Invalid regex: $line" if ($@);
+          } else {
+            err "Regex does not end with trailing slash / flags: $line ";
+          }
+        } else {
           $line =~ /^\s*([A-Za-z0-9_-]*)\s*:\s*(.*)/;
           my $value = $2;
           $1 or $lastheader or err "no header";
