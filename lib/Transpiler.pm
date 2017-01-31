@@ -75,7 +75,7 @@ sub endblock(){
           print $out ")\n  {\n";
           $indent = "    ";
         }
-        print $out $indent."`ls -t $target/new | head -1 | xargs -I {} mv '$target/new/{}' '$target/cur/{}:2,S'`\n";
+        print $out $indent."`ls -t $target/new | head -1 | xargs -I {} mv \"$target/new/{}\" \"$target/cur/{}:2,S\"`\n";
         print $out "  }\n" if (@conditionsForMark);
         print $out "  exit\n";
       } else {
