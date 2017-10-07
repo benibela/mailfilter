@@ -66,7 +66,6 @@ sub endblock(){
       print $out "if (";
       printconditions (\@conditions);
       print $out ")\n{\n";
-      print $out "  ".($markRead?"cc":"to")." \"$target\"\n";
       if ($markRead) {
         my $indent = "  ";
         if (@conditionsForMark) {
@@ -75,12 +74,13 @@ sub endblock(){
           print $out ")\n  {\n";
           $indent = "    ";
         }
-        print $out $indent."`ls -t \"$target/new\" | head -1 | xargs -I {} mv \"$target/new/{}\" \"$target/cur/{}:2,S\"`\n";
+        print $out $indent."FLAGS=\"S\"\n";
         print $out "  }\n" if (@conditionsForMark);
-        print $out "  exit\n";
+        print $out "  \n";
       } else {
         !@conditionsForMark or err "conditions after =>";
       }
+      print $out "  to \"$target\"\n";
       print $out "}\n";
     } else {
       $hadDefaultBlock = 1;
@@ -231,7 +231,14 @@ sub process{
           push @$lastConditions, \@newFilter
         }
       }
-      case /^mark\s+read$/ {
+      case /^mark\s+(read|seen)$/ {
+        $line =~ /mark\s+([a-z]*)/;
+        my $markname = $1;
+        switch ($markname) {
+          case "read" {
+            print STDERR "mark read is deprecated and was renamed to mark seen\n";
+          }
+        }
         $blockTarget or err "mark without preceding =>";
         $markRead = 1;
       }

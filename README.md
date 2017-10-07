@@ -1,3 +1,4 @@
+
 Mailfilter
 ============
 
@@ -49,18 +50,18 @@ When the same header is checked in multiple, consecutive filters, only the first
     : bar@example.org
     => exfolder
 
-The mails can be automatically marked as read with the mark read command:
+The mails can be automatically marked as read with the mark seen command (requires maildrop >= 2.8.4, although you could use an older  mailfilter from early 2017 with older maildrops ):
 
     From: foobar
     => foolder
-    mark read
+    mark seen
 
 This marking can also be done conditionally, e.g. to hide spam:
 
     From: foobar
     => foolder
     Subject: spam
-    mark read
+    mark seen
 
 Multiple filters are separated by whitespace.
 
@@ -72,7 +73,7 @@ Multiple filters are separated by whitespace.
 
     From: someguy
     => thatguy
-    mark read
+    mark seen
     
     => catchall
 
@@ -87,6 +88,6 @@ The folder used by => is always prefixed with $MAILDIR, which is currently not c
 
 From/To/Cc/Resent-To/Resent-Cc ignore the name part and only compare the addr.
 
-The two commands `=>` and `mark read` should probably become user configurable. mark read might have a race condition.
+The two commands `=>` and `mark seen` should probably become more user configurable. 
 
 Dovecot uses mailfolders like `$MAILDIR/.a.b.c` for a folder c in b in a. Here we write such a folder as `a.b.c`
