@@ -63,7 +63,7 @@ This marking can also be done conditionally, e.g. to hide spam:
     Subject: spam
     mark seen
 
-Multiple filters are separated by whitespace.
+Multiple filters are separated by line breaks like paragraphs in markdown.
 
     Subject: topic1
     => folder1
