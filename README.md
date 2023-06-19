@@ -90,4 +90,7 @@ From/To/Cc/Resent-To/Resent-Cc ignore the name part and only compare the addr.
 
 The two commands `=>` and `mark seen` should probably become more user configurable. 
 
+If you use contains filters like `subject: ..`, the script should ensure that the resulting maildrop script is valid. 
+However, if custom regular expressions are used, e.g. `subject: /.../`, it does not check whether the regular expression is valid. So one should always run  `echo | maildrop` to check if the mailfiltering still works after editing these expressions.
+
 Dovecot uses mailfolders like `$MAILDIR/.a.b.c` for a folder c in b in a. Here we write such a folder as `a.b.c`
